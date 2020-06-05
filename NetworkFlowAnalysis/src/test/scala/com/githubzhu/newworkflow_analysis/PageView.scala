@@ -46,7 +46,7 @@ object PageView {
    val pvCountStream=  dataStream
       .filter(data=>data.behavior=="pv")
 //      .map(data => {  ("pv", 1) })// map成二元组，用一个哑key来作为分组的key
-      .map(new MyMapper())
+      .map(new MyMapper())  //自定义maper 数据不均问题
       .keyBy(_._1)
       .timeWindow(Time.hours(1)) //统计每小时的pv值
       .aggregate(new PvCountAgg(), new PvCountWindowResult())

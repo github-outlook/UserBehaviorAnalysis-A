@@ -28,7 +28,7 @@ object OrderPayDetect {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     val resource = getClass.getResource("/OrderLog.csv")
-    val inoutStream: DataStream[OrderEvent] = env.readTextFile(resource.getPath).map(data => {
+    val inputStream: DataStream[OrderEvent] = env.readTextFile(resource.getPath).map(data => {
       val dataArr = data.split(",")
       OrderEvent(dataArr(0).toLong, dataArr(1), dataArr(2), dataArr(3).toLong)
     }).assignAscendingTimestamps(_.timestamp*1000)
@@ -41,7 +41,7 @@ object OrderPayDetect {
 
     //应用到流
 
-    val orderPatternStream: PatternStream[OrderEvent] = CEP.pattern(inoutStream.keyBy(_.orderId), orderPayPattern)
+    val orderPatternStream: PatternStream[OrderEvent] = CEP.pattern(inputStream.keyBy(_.orderId), orderPayPattern)
 
     //定义outputTag
     val outputTag = OutputTag[OrderResult]("time-out")
@@ -63,7 +63,7 @@ class OrderTimeoutFun() extends PatternTimeoutFunction[OrderEvent, OrderResult] 
   override def timeout(map: util.Map[String, util.List[OrderEvent]], l: Long): OrderResult = {
     print(l)
     val timeoutOrder: OrderEvent = map.get("create").iterator().next()
-    OrderResult(timeoutOrder.orderId.toLong, "timeout")
+    OrderResult(timeoutOrder.orderId, "timeout")
   }
 }
 
